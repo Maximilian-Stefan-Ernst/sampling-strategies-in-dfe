@@ -5,3 +5,8 @@ date: "4 5 2021"
 output: html_document
 ---
 
+# generating lotteries (outcome distributions)
+```{r}
+
+```
+
