@@ -5,8 +5,51 @@ date: "4 5 2021"
 output: html_document
 ---
 
-# generating lotteries (outcome distributions)
-```{r}
+# load packages
 
+```{r}
+pkgs <- c("tidyverse")
+lapply(pkgs, library, character.only = T)
 ```
 
+
+# generate a lottery 
+
+A lottery is defined by a) a vector of possible outcomes, b) an outcome distribution, and c) the number of elements in the lottery (i.e., the maximum amount of draws from that lottery without replacement)
+
+```{r}
+set.seed(34)
+outcomes = c("w", "~w") # possible outcomes
+N <- 100 # number of elements in the lottery
+p <- .20 # outcome probability/distribution
+
+# generate lottery
+lot <- rep(outcomes, 
+           times = c(p*N, (1-p)*N)
+           ) 
+lot <- factor(sample(lot)) # randomize order of elements
+lot %>% table #  check underlying outcome distribution
+```
+
+# simulate sampling from a lottery 
+
+Sampling is defined by a more or less complex sampling process/strategy, which produces single samples or subsets of the elements within given lotteries. A trivial sampling strategy is to draw a specified number of samples from a specified lottery with no further dependency: 
+
+```{r}
+set.seed(5) 
+n <- 10 # number of single samples to be drawn from lottery
+draws <- sample(x = lot,
+                size = n,
+                replace = FALSE # there is, in principle, a finite number of draws 
+                )
+draws
+```
+
+# integrating single samples into a lottery composite score
+
+```{r}
+draws_quant <- recode(draws, "~w" = 0, "w" = 1) # assign numberic values to single samples 
+C <- sum(draws_quant) # 
+C # composite score as number of experienced wins
+C/n # ... as experienced winning probability 
+```
