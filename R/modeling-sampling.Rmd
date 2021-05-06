@@ -15,13 +15,13 @@ lapply(pkgs, library, character.only = T)
 
 # generate a lottery 
 
-A lottery is defined by a) a vector of possible outcomes, b) an outcome distribution, and c) the number of elements in the lottery (i.e., the maximum amount of draws from that lottery without replacement)
+A lottery is defined by a) a vector of possible outcomes (Win, No Win), b) an outcome distribution (Probability of Win vs. No win), and c) the number of elements in the lottery (i.e., the maximum amount of draws from that lottery without replacement)
 
 ```{r}
 set.seed(34)
-outcomes = c("w", "~w") # possible outcomes
+outcomes <- c("w", "~w") # outcomes
+p <- .20 # probability / outcome distribution (for 2 outcomes where p(~w) = 1-p(w))  
 N <- 100 # number of elements in the lottery
-p <- .20 # outcome probability/distribution
 
 # generate lottery
 lot <- rep(outcomes, 
@@ -33,23 +33,63 @@ lot %>% table #  check underlying outcome distribution
 
 # simulate sampling from a lottery 
 
-Sampling is defined by a more or less complex sampling process/strategy, which produces single samples or subsets of the elements within given lotteries. A trivial sampling strategy is to draw a specified number of samples from a specified lottery with no further dependency: 
+Sampling is defined by a more or less complex sampling process, which produces single samples or subsets of the elements within a lotteries and then integrates them into a composite. A trivial sampling strategy is to draw a specified number of samples from a specified lottery with no further dependencies: 
+
+## summary strategy with integration after termination
 
 ```{r}
+
+# Sampling process 
 set.seed(5) 
 n <- 10 # number of single samples to be drawn from lottery
-draws <- sample(x = lot,
-                size = n,
-                replace = FALSE # there is, in principle, a finite number of draws 
+smpl <- sample(x = lot, # sample from lottery 
+                size = n, 
+                replace = FALSE # drawn outcomes elements are not replaced
                 )
-draws
+smpl
+smpl %>% table
+
+# Preference building 
+C <- sum(recode(smpl, "~w" = 0, "w" = 1))  
+C # composite score as number of experienced wins (expected value)
+C/n # ... as experienced winning probability
 ```
 
-# integrating single samples into a lottery composite score
+
+## summary strategy with sequential sample integration (mean updating)
 
 ```{r}
-draws_quant <- recode(draws, "~w" = 0, "w" = 1) # assign numberic values to single samples 
-C <- sum(draws_quant) # 
-C # composite score as number of experienced wins
-C/n # ... as experienced winning probability 
+lot <- seq(1,100,1) # lottery of 100 outcome elements 
+n <- rep(1, 10) # sample size = 10
+smpl <- vector("numeric", length(n)) # vector for unique samples
+mean <- vector("numeric", length(n)) # vector for sample means
+
+set.seed(7)
+
+for (i in seq_along(n)) { # loop/sample n = 10 times
+  
+  smpl[i] <- sample(lot, # sample from lottery
+                    size = n[i] # sample one element a time
+                    )  
+  
+  lot <- lot[-(match(smpl[i], lot))] # no replacement/remove from lottery: 1st element in lottery vector that matches the element that was just sampled 
+
+mean[i] <- mean(smpl[1:i]) # calculate mean of the current sample
+  
+}
+
+output <- data.frame(ind = seq(1,length(nsmall),1), smpl, mean) # summary table of sampling process
+output
+
+output_l <- gather(output, stat, value, smpl:mean, factor_key=TRUE) # wide to long
+
+graph <- output_l %>%
+  ggplot(.) +
+  geom_hline(yintercept = mean(lot)) + # plot lottery mean
+  geom_point(aes(x = ind, y = value, color = stat))+ # plot single samples and corresponding mean updates
+  geom_line(aes(x = ind, y = value, color = stat)) 
+graph
 ```
+
+
+
