@@ -5,7 +5,7 @@ date: "5 5 2021"
 output: html_document
 ---
 
-# value function
+# utility function
 
 ## for x >= 0
 
@@ -20,52 +20,52 @@ for(i in seq_along(a)){# loop over different alpha-values
  
  }
 
-v_gain <- data.frame(x, output)
-names(v_gain) <- c("x", paste("a =", a))
-head(v_gain)
+u_gain <- data.frame(x, output)
+names(u_gain) <- c("x", paste("a =", a))
+
 # plot 
-v_gain_long <- gather(v_gain, alpha, y, "a = 0.1":"a = 1", factor_key=TRUE)
-ggplot(data = v_gain_long) + 
+u_gain_long <- gather(u_gain, alpha, y, "a = 0.1":"a = 1", factor_key=TRUE)
+ggplot(data = u_gain_long) + 
   geom_line(aes(x = x, y = y, color = alpha))
 ```
 
 ## for y < 0
 
 ```{r}
-v_loss <- v_gain*-1
+u_loss <- u_gain*-1
 
-v_loss_long <- gather(v_loss, alpha, y, "a = 0.1":"a = 1", factor_key=TRUE)
+u_loss_long <- gather(u_loss, alpha, y, "a = 0.1":"a = 1", factor_key=TRUE)
 
-y2 <- rep(0, nrow(v_loss_long))
-y3 <- rep(0, nrow(v_loss_long))
+y2 <- rep(0, nrow(u_loss_long))
+y3 <- rep(0, nrow(u_loss_long))
 steep <- data.frame(y2, y3)
 g <- c(2,3)
 
 for (i in seq_along(g)) {
   
-  steep[, i] <- g[i]*v_loss_long$y
+  steep[, i] <- g[i]*u_loss_long$y
   
 }
 
-v_loss_long <- bind_cols(v_loss_long, steep)
-v_loss_long <- gather(v_loss_long, lambda, y, y:y3, factor_key=TRUE)
-ggplot(data = v_loss_long) +
+u_loss_long <- bind_cols(u_loss_long, steep)
+u_loss_long <- gather(u_loss_long, lambda, y, y:y3, factor_key=TRUE)
+ggplot(data = u_loss_long) +
   geom_line(aes(x = x, y = y, color = lambda, linetype = alpha))
 ```
 
 ## for y < 0 <= x
 
 ```{r}
-lambda <- factor(rep("y", nrow(v_gain_long)))
-v_gain_long$lambda <- lambda
+lambda <- factor(rep("y", nrow(u_gain_long)))
+u_gain_long$lambda <- lambda
 
-v <- bind_rows(v_gain_long, v_loss_long)
-vfun <- ggplot(data = v) +
+u <- bind_rows(u_gain_long, u_loss_long)
+ufun <- ggplot(data = u) +
   geom_line(aes(x = x, y = y, color = lambda, linetype = alpha)) +
   geom_vline(xintercept = 0) + 
   geom_hline(yintercept = 0) + 
   ylim (-15, 10)
-vfun
+ufun
 ```
 
 
