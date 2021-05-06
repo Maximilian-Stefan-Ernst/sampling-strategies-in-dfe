@@ -5,28 +5,22 @@ date: "5 5 2021"
 output: html_document
 ---
 
+```{r}
+pacman::p_load(tidyr, dplyr, ggplot2)
+```
+
 # utility function
 
 ## for x >= 0
 
 ```{r}
-x <- seq(0,10,.1) # outcomes
-a <- seq(0.1,1,.1) # concave curvature for x >= 0 
-output <- matrix(ncol = length(a), nrow = length(x)) # empty data frame for values 
+u_gain_long <- expand_grid(alpha = seq(0.1,1,.1), x = seq(0,10,.1))
+u_gain_long <- mutate(u_gain_long, y = x^alpha)
+u_gain_long <- mutate(u_gain_long, alpha = factor(alpha))
 
-for(i in seq_along(a)){# loop over different alpha-values  
-  
- output[,i] <- x^a[i] # value function for x >= 0
- 
- }
-
-u_gain <- data.frame(x, output)
-names(u_gain) <- c("x", paste("a =", a))
-
-# plot 
-u_gain_long <- gather(u_gain, alpha, y, "a = 0.1":"a = 1", factor_key=TRUE)
 ggplot(data = u_gain_long) + 
-  geom_line(aes(x = x, y = y, color = alpha))
+  geom_line(aes(x = x, y = y, color = alpha)) +
+  theme_minimal()
 ```
 
 ## for y < 0
